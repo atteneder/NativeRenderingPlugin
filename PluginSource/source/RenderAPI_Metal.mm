@@ -24,6 +24,7 @@ public:
 
 	virtual void DrawSimpleTriangles(const float worldMatrix[16], int triangleCount, const void* verticesFloat3Byte4);
 
+    virtual unsigned int CreateTexture(int textureWidth, int textureHeight);
 	virtual void* BeginModifyTexture(void* textureHandle, int textureWidth, int textureHeight, int* outRowPitch);
 	virtual void EndModifyTexture(void* textureHandle, int textureWidth, int textureHeight, int rowPitch, void* dataPtr);
 
@@ -218,6 +219,10 @@ void RenderAPI_Metal::DrawSimpleTriangles(const float worldMatrix[16], int trian
 	[cmd drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:triangleCount*3];
 }
 
+unsigned int RenderAPI_Metal::CreateTexture(int textureWidth, int textureHeight) {
+    // TODO: Implement
+    return NULL;
+}
 
 void* RenderAPI_Metal::BeginModifyTexture(void* textureHandle, int textureWidth, int textureHeight, int* outRowPitch)
 {

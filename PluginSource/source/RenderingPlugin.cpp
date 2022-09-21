@@ -35,6 +35,16 @@ extern "C" void UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API SetTextureFromUnity(v
 }
 
 
+static void* g_CreatedTextureHandle = NULL;
+
+extern "C" void* UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API FetchCreatedTexture()
+{
+    void* tmp = g_CreatedTextureHandle;
+    g_CreatedTextureHandle = NULL;
+    return tmp;
+}
+
+
 // --------------------------------------------------------------------------
 // SetMeshBuffersFromUnity, an example function we export which is called by one of the scripts.
 
@@ -292,9 +302,14 @@ static void UNITY_INTERFACE_API OnRenderEvent(int eventID)
 	if (s_CurrentAPI == NULL)
 		return;
 
-	DrawColoredTriangle();
-	ModifyTexturePixels();
-	ModifyVertexBuffer();
+    if(eventID==1) {
+        DrawColoredTriangle();
+        ModifyTexturePixels();
+        ModifyVertexBuffer();
+    } else
+    if(eventID==2) {
+        g_CreatedTextureHandle = (void*)s_CurrentAPI->CreateTexture(256,256);
+    }
 }
 
 

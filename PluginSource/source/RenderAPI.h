@@ -36,6 +36,7 @@ public:
 	// Begin modifying texture data. You need to pass texture width/height too, since some graphics APIs
 	// (e.g. OpenGL ES) do not have a good way to query that from the texture itself...
 	//
+    virtual unsigned int CreateTexture(int textureWidth, int textureHeight) = 0;
 	// Returns pointer into the data buffer to write into (or NULL on failure), and pitch in bytes of a single texture row.
 	virtual void* BeginModifyTexture(void* textureHandle, int textureWidth, int textureHeight, int* outRowPitch) = 0;
 	// End modifying texture data.

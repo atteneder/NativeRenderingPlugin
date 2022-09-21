@@ -2,7 +2,7 @@ using UnityEngine;
 using System;
 using System.Collections;
 using System.Runtime.InteropServices;
-
+using UnityEngine.Serialization;
 
 public class UseRenderingPlugin : MonoBehaviour
 {
@@ -29,6 +29,16 @@ public class UseRenderingPlugin : MonoBehaviour
 #endif
 	private static extern void SetTextureFromUnity(System.IntPtr texture, int w, int h);
 
+	// We'll also pass native pointer to a texture in Unity.
+	// The plugin will fill texture data from native code.
+#if (UNITY_IOS || UNITY_TVOS || UNITY_WEBGL) && !UNITY_EDITOR
+	[DllImport ("__Internal")]
+#else
+	[DllImport ("RenderingPlugin")]
+#endif
+	static extern IntPtr FetchCreatedTexture();
+
+	
 	// We'll pass native pointer to the mesh vertex buffer.
 	// Also passing source unmodified mesh data.
 	// The plugin will fill vertex data from native code.
@@ -51,6 +61,9 @@ public class UseRenderingPlugin : MonoBehaviour
 	private static extern void RegisterPlugin();
 #endif
 
+	[SerializeField]
+	Renderer createdTextureRenderer;
+	
 	IEnumerator Start()
 	{
 #if UNITY_WEBGL && !UNITY_EDITOR
@@ -58,6 +71,8 @@ public class UseRenderingPlugin : MonoBehaviour
 #endif
 		CreateTextureAndPassToPlugin();
 		SendMeshBuffersToPlugin();
+		yield return new WaitForEndOfFrame();
+		GL.IssuePluginEvent(GetRenderEventFunc(), 2);
 		yield return StartCoroutine("CallPluginAtEndOfFrames");
 	}
 
@@ -126,6 +141,14 @@ public class UseRenderingPlugin : MonoBehaviour
 			// things it needs to do based on this ID.
 			// For our simple plugin, it does not matter which ID we pass here.
 			GL.IssuePluginEvent(GetRenderEventFunc(), 1);
+
+			var txt = FetchCreatedTexture();
+			if (txt != IntPtr.Zero) {
+				// Create a texture
+				Texture2D tex = Texture2D.CreateExternalTexture(256,256,TextureFormat.ARGB32,false,false,txt);
+				// Set texture onto our material
+				createdTextureRenderer.material.mainTexture = tex;
+			}
 		}
 	}
 }

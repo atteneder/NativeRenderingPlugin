@@ -9,6 +9,7 @@
 
 
 #include <assert.h>
+#include <math.h>
 #if UNITY_IOS || UNITY_TVOS
 #	include <OpenGLES/ES2/gl.h>
 #elif UNITY_ANDROID || UNITY_WEBGL
@@ -49,6 +50,7 @@ public:
 	virtual void* BeginModifyTexture(void* textureHandle, int textureWidth, int textureHeight, int* outRowPitch);
 	virtual void EndModifyTexture(void* textureHandle, int textureWidth, int textureHeight, int rowPitch, void* dataPtr);
 
+    virtual unsigned int CreateTexture(int textureWidth, int textureHeight);
 	virtual void* BeginModifyVertexBuffer(void* bufferHandle, size_t* outBufferSize);
 	virtual void EndModifyVertexBuffer(void* bufferHandle);
 
@@ -266,6 +268,52 @@ void RenderAPI_OpenGLCoreES::DrawSimpleTriangles(const float worldMatrix[16], in
 #	endif
 }
 
+unsigned int RenderAPI_OpenGLCoreES::CreateTexture(int textureWidth, int textureHeight) {
+    
+    const int rowPitch = textureWidth * 4;
+    unsigned char* data = new unsigned char[rowPitch * textureHeight];
+    
+    GLuint textures[1];
+    glGenTextures(1, textures);
+    GLuint textureId = textures[0];
+
+    const float t = 0;
+
+    unsigned char* dst = (unsigned char*)data;
+    for (int y = 0; y < textureHeight; ++y)
+    {
+        unsigned char* ptr = dst;
+        for (int x = 0; x < textureWidth; ++x)
+        {
+            // Write the texture pixel
+            ptr[0] = ((x>>3)^(y>>6))&0x1 ? 255 : 0;
+            ptr[1] = ((x>>4)^(y>>5))&0x1 ? 255 : 0;
+            ptr[2] = ((x>>5)^(y>>4))&0x1 ? 255 : 0;
+            ptr[3] = ((x>>6)^(y>>3))&0x1 ? 255 : 0;
+
+            // To next pixel (our pixels are 4 bpp)
+            ptr += 4;
+        }
+
+        // To next image row
+        dst += rowPitch;
+    }
+    
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, textureId);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, textureWidth, textureHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S,
+    GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T,
+    GL_CLAMP_TO_EDGE);
+    glBindTexture(GL_TEXTURE_2D, 0);
+    
+    delete[](unsigned char*)data;
+    
+    return textureId;
+}
 
 void* RenderAPI_OpenGLCoreES::BeginModifyTexture(void* textureHandle, int textureWidth, int textureHeight, int* outRowPitch)
 {
