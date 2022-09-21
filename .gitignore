@@ -3,6 +3,8 @@
 *.VC.opendb
 .vs
 
+.DS_Store
+
 xcuserdata
 *.xcworkspace
 xcshareddata
@@ -15,6 +17,8 @@ UnityProject/Library
 UnityProject/Temp
 UnityProject/UWP
 UnityProject/Logs
+UnityProject/obj
+UnityProject/.idea
 
 PluginSource/build
 PluginSource/projects/Android/libs/*
